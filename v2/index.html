@@ -512,6 +512,15 @@
       });
     }
 
+    // 「ひら先生は〜とお伝えしています」のような三人称を、一人称（私）に直す
+    // 相談者が ひら先生やAIについて聞いたときは、正直に答える場面なのでそのままにする
+    function fixSelfReference(reply) {
+      const lastUser = [...chatHistory].reverse().find(h => h.role === "user");
+      const askedAboutIdentity = lastUser && /(ひら先生|AI|ＡＩ|人間|本人|ロボット|機械)/.test(lastUser.parts[0].text);
+      if (askedAboutIdentity) return reply;
+      return reply.replace(/ひら先生(は|が|も|の|に|と)/g, "私$1").replace(/ひら先生/g, "私");
+    }
+
     // 直前の返答でも名前を呼んでいたら、冒頭の「〜さん、」を外す（名前の連呼防止）
     function removeRepeatedName(reply) {
       const m = reply.match(/^([^\s、。！？!?]{1,12}(さん|様))[、,]\s*/);
@@ -587,7 +596,7 @@
         loadingDiv.remove();
 
         if (raw) {
-          const reply = limitNameUse(removeRepeatedName(normalizeReply(raw)));
+          const reply = fixSelfReference(limitNameUse(removeRepeatedName(normalizeReply(raw))));
           appendMessage(reply, 'bot');
           chatHistory.push({ role: "model", parts: [{ text: reply }] });
         } else {
