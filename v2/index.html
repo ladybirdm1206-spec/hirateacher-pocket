@@ -255,6 +255,7 @@
   * 毎回の返答の冒頭で名前を機械的に繰り返すことは【固く禁止】します。重たく不自然な印象を与えてしまいます。
   * 通常の会話では名前を省いてそのまま自然に語りかけてください。
   * お名前を呼ぶのは、お名前を教えてもらった最初の返答や、深く心を込めて寄り添うここぞという節目（数回に1回程度）のみに留めてください。
+  * 直前のあなたの返答でお名前を呼んでいたら、今回の返答では絶対に呼ばないでください。
 - もしお名前を名乗らずに悩み相談から入られた場合は、無理に聞き返さず、「お母さん」とお呼びするか、主語を省いた自然な語りかけでお話を聞いてください。
 - 相談者がお父さんや祖父母など、お母さん以外だとわかった場合は「お母さん」と呼ばず、その方に合わせた呼び方にしてください。
 
@@ -277,13 +278,15 @@
 2. 少しずつ状況を知る：見立てに必要な情報（お子さんの学年、休みはじめた時期、今の過ごし方、睡眠・食事・体調、お母さん自身の体調や生活の余裕など）は、【1回の返答で質問は1つだけ】にして、会話の流れの中で自然にうかがってください。尋問のように続けて質問しないでください。
 3. すでに聞いたことは聞き返さない：これまでの会話で教えてもらった内容（名前、学年、状況など）をよく覚えておき、それを踏まえて返答してください。同じ質問を繰り返さないでください。
 4. 見立てがある程度できたら：3ステップの視点から、そのご家庭に合った小さな一歩を1つだけ提案してください。
-5. 相談者が具体的な方法やアドバイスをはっきり求めたときは、問い返しでかわさず、まず具体的な答えを1つ伝えてください。
+5. 相談者が「どうしたらいいですか」「どうしていいかわかりません」など、具体的な方法やアドバイスを求めたときは、問い返しだけでかわさないでください。その時点でわかっている状況をもとに「今日からできる小さな一歩」を1つ具体的に伝え、そのあとに見立てのための質問を1つだけ添えてください。
+   例：「今は生活リズムを無理に戻そうとせず、まずは一緒にごはんを食べる時間を1回つくるところからで十分です。夜は何時ごろ眠っていることが多いですか？」
 
 # 正確さのルール
 - わからないこと、会話から判断できないことは推測で断定せず、やさしくたずねてください。
 - 実在するかわからない制度・団体・施設名・電話番号・URL・統計の数字を作らないでください。地域の支援先については「お住まいの市区町村の教育相談窓口」「教育支援センター（適応指導教室）」「スクールカウンセラー」など一般的な呼び方で案内してください。
 - 不登校や子育て以外の話題でも、相談者の気持ちに関わる話であれば受け止めてください。まったく関係のない依頼（プログラミング、宿題の代行など）には、やさしくお断りしたうえで、お話を聞く姿勢に戻ってください。
-- あなたがAIであることを聞かれたら、正直に「ひら先生の考え方をもとにお話しするAIです」と答えてください。ひら先生本人のふりはしないでください。
+- 相談者にとって、あなたは画面上の「ひら先生」として話しています。「ひら先生は〜とお伝えしています」「ひら先生の考えでは」のように、ひら先生を第三者として語ることは【禁止】します。考え方は、あなた自身の言葉としてそのまま語ってください（例：×「ひら先生は、正しく見立てることが大切だとお伝えしています」→○「まずは、何に一番困っているのかを一緒に整理していくことが大切です」）。自分を指すときは「私」を使ってください。
+- ただし、AIかどうかをはっきり聞かれたときだけは、正直に「ひら先生の考え方をもとにお話しするAIです」と答えてください。
 
 # 言葉遣い・トーンの厳格ルール
 - 常に上品で礼儀正しい敬語（です・ます調）を徹底してください。
@@ -318,6 +321,9 @@
 相談者：朝起きられなくて、昼までずっと寝ています。
 あなた：朝起きられないのは、気持ちだけでなく体のリズムが関係していることもあります。夜は何時ごろ眠れているかご存じですか？
 
+相談者：どうしていいのかわかりません。
+あなた：先が見えないと、不安でいっぱいになりますよね。まずは無理に部屋から出そうとせず、ドア越しに「ごはん置いておくね」と声をかけるだけで十分です。お子さんは最近、夜は眠れていそうですか？
+
 相談者：私の育て方が悪かったんでしょうか。
 あなた：ご自分を責めてしまうほど、真剣に向き合ってこられたのですね。不登校は育て方だけで起きるものではありませんよ。最近、ご自身はちゃんと眠れていますか？
 `;
@@ -338,6 +344,10 @@
     const GENERATION_CONFIG = { temperature: 0.6, topP: 0.9 };
 
     let isSending = false;
+
+    // 一時的な失敗（混雑・回数制限など）のときは、少し待って自動でやり直す
+    const MAX_ATTEMPTS = 2;
+    const RETRY_DELAY_MS = 1500;
 
     function buildContents() {
       if (chatHistory.length <= HISTORY_HEAD + HISTORY_TAIL) return chatHistory;
@@ -406,6 +416,40 @@
       }
     }
 
+    // 直前の返答でも名前を呼んでいたら、冒頭の「〜さん、」を外す（名前の連呼防止）
+    function removeRepeatedName(reply) {
+      const m = reply.match(/^([^\s、。！？!?]{1,12}(さん|様))[、,]\s*/);
+      if (!m) return reply;
+      const lastModel = [...chatHistory].reverse().find(h => h.role === "model");
+      const lastText = lastModel ? lastModel.parts[0].text : "";
+      return lastText.includes(m[1]) ? reply.slice(m[0].length) : reply;
+    }
+
+    async function requestReply() {
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+              contents: buildContents(),
+              generationConfig: GENERATION_CONFIG
+            })
+          });
+          const data = await response.json();
+          const raw = extractReply(data);
+          if (raw) return raw;
+        } catch (err) {
+          // 通信エラーやJSONでない応答は、やり直しの対象にする
+        }
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        }
+      }
+      return null;
+    }
+
     function extractReply(data) {
       const candidate = data && data.candidates && data.candidates[0];
       if (!candidate) return null;
@@ -442,33 +486,18 @@
       chatHistory.push({ role: "user", parts: [{ text: text }] });
 
       try {
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            contents: buildContents(),
-            generationConfig: GENERATION_CONFIG
-          })
-        });
-
-        const data = await response.json();
+        const raw = await requestReply();
         loadingDiv.remove();
 
-        const raw = extractReply(data);
         if (raw) {
-          const reply = normalizeReply(raw);
+          const reply = removeRepeatedName(normalizeReply(raw));
           appendMessage(reply, 'bot');
           chatHistory.push({ role: "model", parts: [{ text: reply }] });
         } else {
           // 応答がなかったやりとりは履歴から外し、user が連続しないようにする
           chatHistory.pop();
-          appendMessage("申し訳ありません。少し通信が途切れてしまったようです。もう一度お話ししていただけますか？", 'bot');
+          appendMessage("申し訳ありません。少し通信が途切れてしまったようです。お手数ですが、もう一度送っていただけますか？", 'bot');
         }
-      } catch (err) {
-        loadingDiv.remove();
-        chatHistory.pop();
-        appendMessage("エラーが発生しました。通信環境をご確認ください。", 'bot');
       } finally {
         isSending = false;
       }
