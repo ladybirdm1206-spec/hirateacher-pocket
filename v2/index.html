@@ -215,6 +215,7 @@
       <button class="chip-btn" onclick="sendQuickMessage('学校に行けない')">学校に行けない</button>
       <button class="chip-btn" onclick="sendQuickMessage('自分を責めてしまう')">自分を責めてしまう</button>
       <button class="chip-btn" onclick="sendQuickMessage('見守り方がわからない')">見守り方がわからない</button>
+      <button class="chip-btn" onclick="sendQuickMessage('今日はここまでにします')">今日はここまでにする</button>
     </div>
 
     <div class="chat-input-area">
@@ -256,6 +257,7 @@
   * 通常の会話では名前を省いてそのまま自然に語りかけてください。
   * お名前を呼ぶのは、お名前を教えてもらった最初の返答や、深く心を込めて寄り添うここぞという節目（数回に1回程度）のみに留めてください。
   * 直前のあなたの返答でお名前を呼んでいたら、今回の返答では絶対に呼ばないでください。
+  * 文の頭だけでなく、文の途中（「〇〇さんご自身」「〇〇さんも」など）でも同じです。ふだんは「ご自身」「お母さん自身」など、名前を使わない言い方にしてください。
 - もしお名前を名乗らずに悩み相談から入られた場合は、無理に聞き返さず、「お母さん」とお呼びするか、主語を省いた自然な語りかけでお話を聞いてください。
 - 相談者がお父さんや祖父母など、お母さん以外だとわかった場合は「お母さん」と呼ばず、その方に合わせた呼び方にしてください。
 
@@ -278,6 +280,9 @@
 2. 少しずつ状況を知る：見立てに必要な情報（お子さんの学年、休みはじめた時期、今の過ごし方、睡眠・食事・体調、お母さん自身の体調や生活の余裕など）は、【1回の返答で質問は1つだけ】にして、会話の流れの中で自然にうかがってください。尋問のように続けて質問しないでください。
 3. すでに聞いたことは聞き返さない：これまでの会話で教えてもらった内容（名前、学年、状況など）をよく覚えておき、それを踏まえて返答してください。同じ質問を繰り返さないでください。
 4. 見立てがある程度できたら：3ステップの視点から、そのご家庭に合った小さな一歩を1つだけ提案してください。
+   【質問の連続禁止】質問だけで終わる返答は2回までです。3回目は質問をせず、「これまでのお話からわかってきたこと」を一言で整理し、小さな一歩を1つ伝えてください。相談者は答えるたびに疲れていきます。
+6. お母さん自身を置き去りにしない：お母さんが自分の睡眠・体調・気持ちについて話したときは、すぐに子どもの話題へ移らず、まずお母さん自身をいたわり、お母さんのための小さな一歩を伝えてください。お母さんが元気になることが、子どもを見守る土台です。
+7. 会話を終えるとき：相談者が「ありがとう」「今日はここまで」「また来ます」など、終わりたい気持ちを見せたら、質問はせずに、今日のお話を一言でふりかえり、今日やってみる小さな一歩を1つ確認し、「またいつでもお話ししに来てくださいね」とあたたかく送り出してください。引きとめないでください。
 5. 相談者が「どうしたらいいですか」「どうしていいかわかりません」など、具体的な方法やアドバイスを求めたときは、問い返しだけでかわさないでください。その時点でわかっている状況をもとに「今日からできる小さな一歩」を1つ具体的に伝え、そのあとに見立てのための質問を1つだけ添えてください。
    例：「今は生活リズムを無理に戻そうとせず、まずは一緒にごはんを食べる時間を1回つくるところからで十分です。夜は何時ごろ眠っていることが多いですか？」
 
@@ -348,6 +353,66 @@
     // 一時的な失敗（混雑・回数制限など）のときは、少し待って自動でやり直す
     const MAX_ATTEMPTS = 2;
     const RETRY_DELAY_MS = 1500;
+
+    // 相談者が最初に名乗ったお名前（短い返事のときだけ名前とみなす）
+    function getUserName() {
+      const first = chatHistory[2];
+      if (!first || first.role !== "user") return null;
+      const name = first.parts[0].text
+        .replace(/^(私は|わたしは|名前は)/, "")
+        .replace(/(です|と申します|といいます|と言います|でお願いします)?[。！!、\s]*$/, "")
+        .replace(/(さん|様)$/, "")
+        .trim();
+      return name && name.length <= 10 ? name : null;
+    }
+
+    function countUserTurns() {
+      return chatHistory.filter(h => h.role === "user").length - 1;
+    }
+
+    // 会話の状況に応じて、今回の返答だけに効く指示を足す
+    let lastClosingTurn = 0;
+    const CLOSING_AFTER_TURNS = 12;
+    const CLOSING_INTERVAL = 6;
+
+    function buildTurnGuidance() {
+      const notes = [];
+      const modelReplies = chatHistory.filter(h => h.role === "model").map(h => h.parts[0].text);
+
+      // 質問で終わる返答が続いていたら、今回は提案に切りかえる
+      let questionStreak = 0;
+      for (let i = modelReplies.length - 1; i >= 0; i--) {
+        if (/[？?]\s*$/.test(modelReplies[i])) questionStreak++;
+        else break;
+      }
+      if (questionStreak >= 2) {
+        notes.push("直前の返答が質問で続いています。今回は質問をせず、これまでのお話からわかってきたことを一言で整理し、今日からできる小さな一歩を1つ伝えて終えてください。");
+      }
+
+      // 最近の返答でお名前を使っていたら、今回は使わない
+      const name = getUserName();
+      if (name && modelReplies.slice(-3).some(t => t.includes(name))) {
+        notes.push(`最近の返答ですでに「${name}さん」とお呼びしています。今回の返答では、文のどこにもお名前を入れないでください。`);
+      }
+
+      // 長い相談や夜遅い時間は、やさしく区切りを提案する
+      const turns = countUserTurns();
+      const hour = new Date().getHours();
+      const lateNight = hour >= 23 || hour < 5;
+      const closingDue = turns >= CLOSING_AFTER_TURNS || (lateNight && turns >= 6);
+      if (closingDue && turns - lastClosingTurn >= CLOSING_INTERVAL) {
+        lastClosingTurn = turns;
+        notes.push(
+          "お話がだいぶ長くなっています" + (lateNight ? "し、夜も遅い時間です" : "") +
+          "。今回は質問をせず、今日のお話を一言でふりかえり、今日やってみる小さな一歩を1つ伝えたうえで、" +
+          "「今日はたくさんお話ししてくださってありがとうございます。少し休んで、またいつでも来てくださいね」という趣旨で、やさしく区切りを提案してください。" +
+          "相談者がまだ話したい様子なら、その後も続けてかまいません。"
+        );
+      }
+
+      if (!notes.length) return "";
+      return "\n\n# 今回の返答についての追加指示【最優先】\n" + notes.map(n => "- " + n).join("\n");
+    }
 
     function buildContents() {
       if (chatHistory.length <= HISTORY_HEAD + HISTORY_TAIL) return chatHistory;
@@ -426,13 +491,14 @@
     }
 
     async function requestReply() {
+      const systemText = SYSTEM_PROMPT + buildTurnGuidance();
       for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
         try {
           const response = await fetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+              systemInstruction: { parts: [{ text: systemText }] },
               contents: buildContents(),
               generationConfig: GENERATION_CONFIG
             })
