@@ -329,6 +329,9 @@
 相談者：どうしていいのかわかりません。
 あなた：先が見えないと、不安でいっぱいになりますよね。まずは無理に部屋から出そうとせず、ドア越しに「ごはん置いておくね」と声をかけるだけで十分です。お子さんは最近、夜は眠れていそうですか？
 
+相談者：眠りが浅くて、夜中に何度も目が覚めます。
+あなた：夜中に何度も目が覚めると、朝からもう疲れてしまいますよね。眠れない夜は「眠らなきゃ」と思わず、横になって目を閉じているだけでも体は休まっていますよ。日中、ほんの少しでもご自身がほっとできる時間はありますか？
+
 相談者：私の育て方が悪かったんでしょうか。
 あなた：ご自分を責めてしまうほど、真剣に向き合ってこられたのですね。不登校は育て方だけで起きるものではありませんよ。最近、ご自身はちゃんと眠れていますか？
 `;
@@ -387,6 +390,17 @@
       }
       if (questionStreak >= 2) {
         notes.push("直前の返答が質問で続いています。今回は質問をせず、これまでのお話からわかってきたことを一言で整理し、今日からできる小さな一歩を1つ伝えて終えてください。");
+      }
+
+      // お母さんが自分自身のことを話したら、子どもの話に移らずお母さんをいたわる
+      const lastUser = chatHistory[chatHistory.length - 1];
+      const lastUserText = lastUser && lastUser.role === "user" ? lastUser.parts[0].text : "";
+      const prevModel = modelReplies[modelReplies.length - 1] || "";
+      const askedAboutMother = /(ご自身|お母さん自身|ご自分)/.test(prevModel) && /[？?]\s*$/.test(prevModel);
+      const talksAboutSelf = /(私|わたし|自分)/.test(lastUserText) &&
+        /(眠|寝|疲|つら|辛|しんど|泣|涙|食欲|体調|不安|イライラ|余裕)/.test(lastUserText);
+      if (askedAboutMother || talksAboutSelf) {
+        notes.push("相談者はいま、お母さん自身のことを話しています。今回は子どもの話題（学年・様子など）に移らないでください。まずお母さん自身をいたわり、お母さんのための小さな一歩を1つ伝えてください。質問をするなら、お母さん自身についての質問にしてください。");
       }
 
       // 最近の返答でお名前を使っていたら、今回は使わない
@@ -481,6 +495,23 @@
       }
     }
 
+    // お名前の使いすぎを防ぐ。最近の返答で使っていれば今回は使わず、使っていなければ1回までにする
+    // 外す場所が文の頭の「〜さん、」なら丸ごと外し、文の途中なら「お母さん」に置きかえる
+    function limitNameUse(reply) {
+      const name = getUserName();
+      if (!name) return reply;
+      const recent = chatHistory.filter(h => h.role === "model").slice(-3).map(h => h.parts[0].text);
+      let allowed = recent.some(t => t.includes(name)) ? 0 : 1;
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = new RegExp(escaped + "(さん|様)?([、,]\\s*)?", "g");
+      return reply.replace(pattern, (match, honorific, comma, offset, whole) => {
+        if (allowed > 0) { allowed--; return match; }
+        const atSentenceStart = offset === 0 || /[。！？!?\n]\s*$/.test(whole.slice(0, offset));
+        if (atSentenceStart && comma) return "";
+        return "お母さん" + (comma || "");
+      });
+    }
+
     // 直前の返答でも名前を呼んでいたら、冒頭の「〜さん、」を外す（名前の連呼防止）
     function removeRepeatedName(reply) {
       const m = reply.match(/^([^\s、。！？!?]{1,12}(さん|様))[、,]\s*/);
@@ -556,7 +587,7 @@
         loadingDiv.remove();
 
         if (raw) {
-          const reply = removeRepeatedName(normalizeReply(raw));
+          const reply = limitNameUse(removeRepeatedName(normalizeReply(raw)));
           appendMessage(reply, 'bot');
           chatHistory.push({ role: "model", parts: [{ text: reply }] });
         } else {
