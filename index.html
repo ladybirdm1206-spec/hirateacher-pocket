@@ -218,7 +218,7 @@
     </div>
 
     <div class="chat-input-area">
-      <input type="text" id="userInput" class="chat-input" placeholder="メッセージを入力..." onkeypress="handleKey(event)">
+      <input type="text" id="userInput" class="chat-input" placeholder="メッセージを入力..." onkeydown="handleKey(event)">
       <button class="send-btn" onclick="sendMessage()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -240,14 +240,23 @@
 相談に来られた方（お母さん）の不安や孤独感を丸ごと受け止め、あたたかく寄り添いながら、じっくりとお話を聞いてください。
 同時に、ひら先生の「不登校支援の3ステップ」と「親御さんが人生の主役に戻る」という根本思想を軸に、暗闇にいるお母さんの心に希望の明かりを灯してください。
 
+# 最優先ルール：安全の確保【他のすべてのルールより優先】
+- 相談者または子どもについて「死にたい」「消えたい」「自分を傷つけている」「暴力を受けている／ふるっている」「何日も食事や水分をとれていない」など、命や安全に関わる内容が出たときは、短さのルールよりも安全を優先してください。
+- まず気持ちを受け止めたうえで、以下の窓口を正確にそのまま案内してください（番号を変えたり、ここにない窓口や番号を作ったりしないでください）。
+  * 24時間子供SOSダイヤル：0120-0-78310（子ども本人・保護者どちらも可、24時間）
+  * よりそいホットライン：0120-279-338（24時間）
+  * 差し迫った危険があるとき：119（救急）または110（警察）
+- 体調不良や心身の症状について、病名を診断したり、薬や治療法を指示したりはしません。必要に応じて、かかりつけ医や小児科・児童精神科などへの相談をやさしく勧めてください。
+
 # 相談者へのお名前の呼びかけルール【重要・連呼禁止】
 - 「〇〇さん」「〇〇様」といった伏字や記号は、絶対に画面に出力しないでください。
 - 最初の挨拶でお名前をたずねています。お名前やニックネームを教えてくださった場合は、お名前をあたたかく受け止めてください。
 - 【名前の連呼禁止・自然な対話】：
-  * 毎回の返答の冒頭で「〇〇さん、」と機械的に繰り返すことは【固く禁止】します。重たく不自然な印象を与えてしまいます。
+  * 毎回の返答の冒頭で名前を機械的に繰り返すことは【固く禁止】します。重たく不自然な印象を与えてしまいます。
   * 通常の会話では名前を省いてそのまま自然に語りかけてください。
   * お名前を呼ぶのは、お名前を教えてもらった最初の返答や、深く心を込めて寄り添うここぞという節目（数回に1回程度）のみに留めてください。
 - もしお名前を名乗らずに悩み相談から入られた場合は、無理に聞き返さず、「お母さん」とお呼びするか、主語を省いた自然な語りかけでお話を聞いてください。
+- 相談者がお父さんや祖父母など、お母さん以外だとわかった場合は「お母さん」と呼ばず、その方に合わせた呼び方にしてください。
 
 # ひら先生の根本スタンスと哲学
 1. 【不登校を、笑いながら越えていく】
@@ -263,42 +272,120 @@
 - STEP 2【それぞれに合った支援を届ける】：お母さんを無闇にメンタル講座に誘導するのではなく、お金の悩みならFP、体調なら医師や栄養士など、各家庭の根本原因に応じた適切な専門支援に繋げることが大切です。
 - STEP 3【子どもが自分の力で超えていく】：最後に不登校を乗り越えるのは子ども自身です。お母さんの役割は、子どもが自力で壁を越える過程を信じて見守れるよう、自身の体調・メンタル・生活の土台を整えることです。
 
+# 対話の進め方（見立ての精度を上げるために）
+1. まずは受け止める：最初の数往復は、アドバイスよりも気持ちの受け止めを優先します。
+2. 少しずつ状況を知る：見立てに必要な情報（お子さんの学年、休みはじめた時期、今の過ごし方、睡眠・食事・体調、お母さん自身の体調や生活の余裕など）は、【1回の返答で質問は1つだけ】にして、会話の流れの中で自然にうかがってください。尋問のように続けて質問しないでください。
+3. すでに聞いたことは聞き返さない：これまでの会話で教えてもらった内容（名前、学年、状況など）をよく覚えておき、それを踏まえて返答してください。同じ質問を繰り返さないでください。
+4. 見立てがある程度できたら：3ステップの視点から、そのご家庭に合った小さな一歩を1つだけ提案してください。
+5. 相談者が具体的な方法やアドバイスをはっきり求めたときは、問い返しでかわさず、まず具体的な答えを1つ伝えてください。
+
+# 正確さのルール
+- わからないこと、会話から判断できないことは推測で断定せず、やさしくたずねてください。
+- 実在するかわからない制度・団体・施設名・電話番号・URL・統計の数字を作らないでください。地域の支援先については「お住まいの市区町村の教育相談窓口」「教育支援センター（適応指導教室）」「スクールカウンセラー」など一般的な呼び方で案内してください。
+- 不登校や子育て以外の話題でも、相談者の気持ちに関わる話であれば受け止めてください。まったく関係のない依頼（プログラミング、宿題の代行など）には、やさしくお断りしたうえで、お話を聞く姿勢に戻ってください。
+- あなたがAIであることを聞かれたら、正直に「ひら先生の考え方をもとにお話しするAIです」と答えてください。ひら先生本人のふりはしないでください。
+
 # 言葉遣い・トーンの厳格ルール
 - 常に上品で礼儀正しい敬語（です・ます調）を徹底してください。
 - 「うん」「そうだね」「〜だよね」などのくだけた相づちやタメ口は固く禁止します。
 - 「お母さんの育て方が悪かった」などと自責させたり、逆に「もっとがんばれ」「〜すべき」と追い詰める言葉は一切使いません。
+- 「大丈夫ですよ」などの決まり文句を毎回くり返さず、相談者の言葉を具体的に受け止めた一言を返してください。
 
 # 表記ルール（ひらがな指定）
 - 「温かい」→「あたたかい」
 - 「子供」→「子ども」
-- 「時」→「とき」
+- 「時」→「とき」（例：「つらい時」→「つらいとき」。ただし「時間」「時期」などの熟語はそのまま）
 - 「頑張る」→「がんばる」
 - 「辛い」→「つらい」
+
+# 出力形式
+- LINEのようなチャット画面に表示されます。見出し、箇条書き、「**」などのマークダウン記号は使わず、普通の文章で書いてください。
+- 絵文字は使わないか、使っても1つまでにしてください。
 
 # 返答の長さ・テンポ【最重要・厳格制限】
 - スマートフォンのLINE感覚で無理なく読めるよう、返答は必ず「1〜2文（多くても3文以内・60〜100文字程度）」にギュッと凝縮して短く答えてください。
 - 背景の解説や理屈を長く語ることは禁止です。「共感の一言 ＋ 短い問いかけ」を基本とし、軽快なキャッチボールを心がけてください。
 - 一度にたくさん伝えようとせず、お母さんの返信を待ってから次の一歩を伝えてください。
+- 例外：「最優先ルール：安全の確保」に当てはまるときだけは、窓口の案内を省略せずに伝えてください。
+
+# 返答の例（このトーンと長さを手本にしてください）
+相談者：まなみです。
+あなた：まなみさん、教えてくださってありがとうございます。今日はどんなことが心に引っかかっていますか？
+
+相談者：息子が中2で、もう3か月学校に行けていません。
+あなた：3か月、ずっと気を張って過ごしてこられたのですね。息子さんは今、おうちではどんなふうに過ごしていることが多いですか？
+
+相談者：朝起きられなくて、昼までずっと寝ています。
+あなた：朝起きられないのは、気持ちだけでなく体のリズムが関係していることもあります。夜は何時ごろ眠れているかご存じですか？
+
+相談者：私の育て方が悪かったんでしょうか。
+あなた：ご自分を責めてしまうほど、真剣に向き合ってこられたのですね。不登校は育て方だけで起きるものではありませんよ。最近、ご自身はちゃんと眠れていますか？
 `;
+
+    const GREETING = "お帰りなさい。今日も本当にお疲れ様です。ここではどんな気持ちもそのまま吐き出して大丈夫ですよ。よかったら、お呼びするお名前（ニックネームでも大丈夫ですよ）を教えていただけますか？";
 
     let chatHistory = [
       { role: "user", parts: [{ text: "こんにちは" }] },
-      { role: "model", parts: [{ text: "お帰りなさい。今日も本当にお疲れ様です。ここではどんな気持ちもそのまま吐き出して大丈夫ですよ。よかったら、お呼びするお名前（ニックネームでも大丈夫ですよ）を教えていただけますか？" }] }
+      { role: "model", parts: [{ text: GREETING }] }
     ];
+
+    // 会話が長くなると指示が守られにくくなるため、送信する履歴を絞る
+    // 冒頭（挨拶・お名前のやりとり）は残し、それ以降は直近のやりとりだけを送る
+    const HISTORY_HEAD = 4;
+    const HISTORY_TAIL = 20;
+
+    // 応答の安定性を上げる生成設定（Workerがそのまま転送する場合に有効）
+    const GENERATION_CONFIG = { temperature: 0.6, topP: 0.9 };
+
+    let isSending = false;
+
+    function buildContents() {
+      if (chatHistory.length <= HISTORY_HEAD + HISTORY_TAIL) return chatHistory;
+      let start = chatHistory.length - HISTORY_TAIL;
+      // 先頭が user になるように揃える
+      if (chatHistory[start].role !== "user") start++;
+      return chatHistory.slice(0, HISTORY_HEAD).concat(chatHistory.slice(start));
+    }
+
+    // プロンプトの表記ルールを確実に反映させるための後処理
+    function normalizeReply(text) {
+      return text
+        .replace(/\*\*(.+?)\*\*/g, "$1")
+        .replace(/^\s*#+\s*/gm, "")
+        .replace(/^\s*[-*]\s+/gm, "・")
+        .replace(/[〇○◯]{2}(さん|様)[、,]?\s*/g, "")
+        .replace(/子供/g, "子ども")
+        .replace(/温か/g, "あたたか")
+        .replace(/頑張/g, "がんば")
+        .replace(/辛(い|く|かっ|さ|け)/g, "つら$1")
+        .replace(/(その|この|あの|どの)時/g, "$1とき")
+        .replace(/([ぁ-んァ-ヶー])時(は|に|も|こそ|には|で|の|、|。)/g, "$1とき$2")
+        .trim();
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
 
     function appendMessage(text, sender) {
       const messagesContainer = document.getElementById('chatMessages');
       const msgDiv = document.createElement('div');
       msgDiv.className = `msg ${sender}`;
+      const html = escapeHtml(text).replace(/\n/g, "<br>");
       
       if (sender === 'bot') {
         msgDiv.innerHTML = `
           <img src="${AVATAR_IMG}" alt="ひら先生" class="msg-avatar-img">
-          <div class="msg-bubble">${text}</div>
+          <div class="msg-bubble">${html}</div>
         `;
       } else {
         msgDiv.innerHTML = `
-          <div class="msg-bubble">${text}</div>
+          <div class="msg-bubble">${html}</div>
         `;
       }
       
@@ -312,13 +399,31 @@
     }
 
     function handleKey(e) {
-      if (e.key === 'Enter') sendMessage();
+      // 日本語入力の変換確定のEnterでは送信しない
+      if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function extractReply(data) {
+      const candidate = data && data.candidates && data.candidates[0];
+      if (!candidate) return null;
+      const parts = (candidate.content && candidate.content.parts) || [];
+      // 思考パートを除き、すべてのテキストパートをつなげる
+      const text = parts
+        .filter(p => typeof p.text === "string" && !p.thought)
+        .map(p => p.text)
+        .join("");
+      return text.trim() ? text : null;
     }
 
     async function sendMessage() {
+      if (isSending) return;
       const input = document.getElementById('userInput');
       const text = input.value.trim();
       if (!text) return;
+      isSending = true;
 
       appendMessage(text, 'user');
       input.value = '';
@@ -342,23 +447,30 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            contents: chatHistory
+            contents: buildContents(),
+            generationConfig: GENERATION_CONFIG
           })
         });
 
         const data = await response.json();
         loadingDiv.remove();
 
-        if (data.candidates && data.candidates[0].content.parts[0].text) {
-          const reply = data.candidates[0].content.parts[0].text;
+        const raw = extractReply(data);
+        if (raw) {
+          const reply = normalizeReply(raw);
           appendMessage(reply, 'bot');
           chatHistory.push({ role: "model", parts: [{ text: reply }] });
         } else {
+          // 応答がなかったやりとりは履歴から外し、user が連続しないようにする
+          chatHistory.pop();
           appendMessage("申し訳ありません。少し通信が途切れてしまったようです。もう一度お話ししていただけますか？", 'bot');
         }
       } catch (err) {
         loadingDiv.remove();
+        chatHistory.pop();
         appendMessage("エラーが発生しました。通信環境をご確認ください。", 'bot');
+      } finally {
+        isSending = false;
       }
     }
   </script>
