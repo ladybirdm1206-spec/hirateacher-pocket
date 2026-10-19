@@ -378,6 +378,14 @@
     const CLOSING_AFTER_TURNS = 12;
     const CLOSING_INTERVAL = 6;
 
+    // 返答が質問で終わっているか（「？」のほか「〜でしょうか。」「〜構いません。」のような問いかけも含む）
+    function isQuestionReply(text) {
+      const lastSentence = text.trim().split(/(?<=[。！!])/).filter(t => t.trim()).pop() || "";
+      return /[？?]/.test(text.slice(-80)) ||
+        /(か|かしら)[。]?\s*$/.test(lastSentence) ||
+        /(教えてください|聞かせてください|構いません|かまいません)[。]?\s*$/.test(lastSentence);
+    }
+
     function buildTurnGuidance() {
       const notes = [];
       const modelReplies = chatHistory.filter(h => h.role === "model").map(h => h.parts[0].text);
@@ -385,7 +393,7 @@
       // 質問で終わる返答が続いていたら、今回は提案に切りかえる
       let questionStreak = 0;
       for (let i = modelReplies.length - 1; i >= 0; i--) {
-        if (/[？?]\s*$/.test(modelReplies[i])) questionStreak++;
+        if (isQuestionReply(modelReplies[i])) questionStreak++;
         else break;
       }
       if (questionStreak >= 2) {
