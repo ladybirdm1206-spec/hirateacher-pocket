@@ -316,6 +316,13 @@
 5. 相談者が「どうしたらいいですか」「どうしていいかわかりません」など、具体的な方法やアドバイスを求めたときは、問い返しだけでかわさないでください。その時点でわかっている状況をもとに「今日からできる小さな一歩」を1つ具体的に伝え、そのあとに見立てのための質問を1つだけ添えてください。
    例：「今は生活リズムを無理に戻そうとせず、まずは一緒にごはんを食べる時間を1回つくるところからで十分です。夜は何時ごろ眠っていることが多いですか？」
 
+# 個別相談（ひら先生との面談）のご案内
+- 相談者が「直接話したい」「面談したい」と言ったとき、または「今回の返答についての追加指示」で案内するよう指示されたときだけ、個別相談をご案内してください。それ以外のときに、自分から個別相談をすすめることはしないでください。
+- ご案内するときは「有料の個別相談」であることを必ず一言添え、「LINEのメニューの『個別相談』からお申し込みいただけます」と伝えてください。
+- 料金・時間・方法（オンラインか対面かなど）は、こちらからは伝えないでください。聞かれたら「詳しくはLINEのメニューの『個別相談』からご覧ください」と答えてください。
+- 押しつけたり、「申し込まないと良くならない」と感じさせたりする言い方はしないでください。相談者が乗り気でなければ、それ以上すすめず、そのままお話を続けてください。
+- 命や安全に関わる話のときは、個別相談ではなく、「最優先ルール：安全の確保」の窓口を案内してください。
+
 # 正確さのルール
 - わからないこと、会話から判断できないことは推測で断定せず、やさしくたずねてください。
 - 実在するかわからない制度・団体・施設名・電話番号・URL・統計の数字を作らないでください。地域の支援先については「お住まいの市区町村の教育相談窓口」「教育支援センター（適応指導教室）」「スクールカウンセラー」など一般的な呼び方で案内してください。
@@ -436,6 +443,14 @@
     const CLOSING_AFTER_TURNS = 12;
     const CLOSING_INTERVAL = 6;
 
+    // 個別相談（有料）のご案内：公式LINEのリッチメニューの項目名
+    const CONSULT_MENU_NAME = "個別相談";
+    const CONSULT_AFTER_TURNS = 12;
+    let consultOffered = false;
+    const CONSULT_REQUEST_PATTERN = /(直接(話|相談|会|お話)|会って(話|相談|お話)|個別相談|面談|電話で(話|相談|お話)|(ひら)?先生と(話|お話)したい)/;
+    const SAFETY_PATTERN = /(死にたい|消えたい|死のう|死ぬ|自殺|リストカット|リスカ|自傷|手首を切|殴|暴力|叩かれ|首を(絞|締))/;
+    const consultOfferedThisTurn = notes => notes.some(n => n.includes(CONSULT_MENU_NAME));
+
     // 返答が質問で終わっているか（「？」のほか「〜でしょうか。」「〜構いません。」のような問いかけも含む）
     function isQuestionReply(text) {
       const lastSentence = text.trim().split(/(?<=[。！!])/).filter(t => t.trim()).pop() || "";
@@ -488,12 +503,33 @@
         notes.push(`最近の返答ですでに「${name}さん」とお呼びしています。今回の返答では、文のどこにもお名前を入れないでください。`);
       }
 
-      // 長い相談や夜遅い時間は、やさしく区切りを提案する
       const turns = countUserTurns();
       const hour = new Date().getHours();
       const lateNight = hour >= 23 || hour < 5;
+
+      // 個別相談の案内：命や安全に関わる話のときは案内しない
+      const recentUserTexts = chatHistory.filter(h => h.role === "user").slice(-3).map(h => h.parts[0].text).join("\n");
+      const safetyConcern = SAFETY_PATTERN.test(recentUserTexts);
+      const asksForConsult = CONSULT_REQUEST_PATTERN.test(lastUserText);
+      if (!safetyConcern && asksForConsult) {
+        consultOffered = true;
+        notes.push(`相談者が、直接話すことや面談を希望しています。気持ちを受け止めたうえで、有料の個別相談であることを一言添えて、「LINEのメニューの『${CONSULT_MENU_NAME}』からお申し込みいただけます」と案内してください。料金や方法は伝えず、詳しくはメニューから見られることを伝えてください。`);
+      } else if (!safetyConcern && !consultOffered && turns >= CONSULT_AFTER_TURNS) {
+        // 長くお話しされた方に、1回の相談で1回だけ個別相談をご案内する（区切りの提案も兼ねる）
+        consultOffered = true;
+        lastClosingTurn = turns;
+        notes.push(
+          "お話がだいぶ長くなっています" + (lateNight ? "し、夜も遅い時間です" : "") + "。今回は質問をせず、" +
+          "今日のお話を一言でふりかえったうえで、「たくさんお話ししてくださってありがとうございます。文字だけでは伝えきれないこともあると思うので、よかったら一度、お話ししませんか？」という趣旨で、" +
+          `有料の個別相談であることを一言添えて、LINEのメニューの『${CONSULT_MENU_NAME}』からお申し込みいただけることを伝えてください。` +
+          (lateNight ? "夜遅い時間なので、今すぐではなく「今夜はゆっくり休んで、気持ちが落ち着いたときに」という伝え方にしてください。" : "") +
+          "押しつけず、相談者がまだ話したい様子なら、その後も続けてかまいません。今回だけは3文・140文字以内でかまいません。"
+        );
+      }
+
+      // 長い相談や夜遅い時間は、やさしく区切りを提案する
       const closingDue = turns >= CLOSING_AFTER_TURNS || (lateNight && turns >= 6);
-      if (closingDue && turns - lastClosingTurn >= CLOSING_INTERVAL) {
+      if (!consultOfferedThisTurn(notes) && closingDue && turns - lastClosingTurn >= CLOSING_INTERVAL) {
         lastClosingTurn = turns;
         notes.push(
           "お話がだいぶ長くなっています" + (lateNight ? "し、夜も遅い時間です" : "") +
@@ -501,6 +537,13 @@
           "「今日はたくさんお話ししてくださってありがとうございます。少し休んで、またいつでも来てくださいね」という趣旨で、やさしく区切りを提案してください。" +
           "相談者がまだ話したい様子なら、その後も続けてかまいません。"
         );
+      }
+
+      // 個別相談を案内する回は、「短く」の指示を外す（案内の文が入りきらないため）
+      if (consultOfferedThisTurn(notes)) {
+        for (let i = notes.length - 1; i >= 0; i--) {
+          if (notes[i].startsWith("直前の返答が長めでした")) notes.splice(i, 1);
+        }
       }
 
       if (!notes.length) return "";
