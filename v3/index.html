@@ -232,7 +232,7 @@
         <div class="header-info">
           <h1>ひら先生ポケット</h1>
           <p>不登校を笑いながら越えていく</p>
-          <p style="font-size:10px;opacity:.55;margin-top:2px;">ver.3.2</p>
+          <p style="font-size:10px;opacity:.55;margin-top:2px;">ver.3.3</p>
         </div>
       </div>
       <button class="clear-btn" onclick="clearConversation()">会話を消す</button>
@@ -605,18 +605,43 @@
         /(教えてください|聞かせてください|構いません|かまいません)[。]?\s*$/.test(lastSentence);
     }
 
+    // 返答の書き出しが、相談者の言葉の言い直し（オウム返し）になっているか
+    const ECHO_PHRASES = /(のですね|んですね|のですか|ということですね|お気持ち[、,]?\s*(とても|本当に|すごく)?(よく)?わかります|気持ちになりますよね|と感じていらっしゃる|と思っていらっしゃる)/;
+    function isEchoReply(reply, userText) {
+      const first = (reply.trim().split(/(?<=[。！？!?])/)[0] || "");
+      if (ECHO_PHRASES.test(first)) return true;
+      // 相談者の言葉を6文字以上そのまま書き出しに使っていたら、言い直しとみなす
+      const u = (userText || "").replace(/[\s。、！？!?「」]/g, "");
+      for (let i = 0; i + 6 <= u.length; i++) {
+        if (first.includes(u.slice(i, i + 6))) return true;
+      }
+      return false;
+    }
+
+    // 直近 n 回の返答のうち、オウム返しで始まっているものの数
+    function countRecentEchoes(n) {
+      let count = 0, seen = 0;
+      for (let i = chatHistory.length - 1; i >= 1 && seen < n; i--) {
+        if (chatHistory[i].role !== "model") continue;
+        seen++;
+        const prev = chatHistory[i - 1];
+        if (prev.role === "user" && isEchoReply(chatHistory[i].parts[0].text, prev.parts[0].text)) count++;
+      }
+      return count;
+    }
+
     function buildTurnGuidance() {
       const notes = [];
       const modelReplies = chatHistory.filter(h => h.role === "model").map(h => h.parts[0].text);
 
       // 質問で終わる返答が続いていたら、今回は提案に切りかえる
       let questionStreak = 0;
-      for (let i = modelReplies.length - 1; i >= 0; i--) {
+      for (let i = modelReplies.length - 1; i >= 1; i--) { // 最初のあいさつ（i = 0）は数えない
         if (isQuestionReply(modelReplies[i])) questionStreak++;
         else break;
       }
       if (questionStreak >= 2) {
-        notes.push("直前の返答が質問で続いています。今回は質問をせず、これまでのお話からわかってきたことを一言で整理し、今日からできる小さな一歩を1つ伝えて終えてください。");
+        notes.push("直前の返答が質問で続いています。今回は質問をせず（お子さんの呼び方をたずねることも含めて、今回はしないでください）、これまでのお話からわかってきたことを一言で整理し、今日からできる小さな一歩を1つ伝えて終えてください。");
       }
 
       // 返答の長さにメリハリをつける：直前が長めなら、今回は短く
@@ -626,8 +651,7 @@
       }
 
       // オウム返しが続いていたら、今回は別の入り方にする
-      const echoPattern = /^[^。！？!?]{0,40}(のですね|んですね|のですか|されてきたんですね|ということですね)[。、]/;
-      const recentEchoes = modelReplies.slice(-2).filter(t => echoPattern.test(t)).length;
+      const recentEchoes = countRecentEchoes(2);
       if (recentEchoes >= 1) {
         notes.push("最近の返答で、相談者の言葉を言い直す受け止め（「〜のですね」）を使いました。今回は言い直しから始めず、短いあいづち、気づき、または前置きなしの一歩や問いかけから入ってください。");
       }
