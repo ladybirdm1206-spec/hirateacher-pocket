@@ -232,7 +232,7 @@
         <div class="header-info">
           <h1>ひら先生ポケット</h1>
           <p>不登校を笑いながら越えていく</p>
-          <p style="font-size:10px;opacity:.55;margin-top:2px;">ver.3.3</p>
+          <p style="font-size:10px;opacity:.55;margin-top:2px;">ver.3.4</p>
         </div>
       </div>
       <button class="clear-btn" onclick="clearConversation()">会話を消す</button>
@@ -595,6 +595,7 @@
     let consultDueThisTurn = false; // 今回の返答で個別相談を案内するか（AIが案内しなかったときの保険）
     const CONSULT_REQUEST_PATTERN = /(直接(話|相談|会|お話)|会って(話|相談|お話)|個別相談|面談|電話で(話|相談|お話)|(ひら)?先生と(話|お話)したい)/;
     const SAFETY_PATTERN = /(死にたい|消えたい|死のう|死ぬ|自殺|リストカット|リスカ|自傷|手首を切|殴|暴力|叩かれ|首を(絞|締))/;
+    const CHILD_TOPIC_PATTERN = /(子ども|子供|こども|お子|息子|娘|うちの子|小[1-6１-６]|中[1-3１-３]|高[1-3１-３]|小学|中学|高校|年生|学校|登校)/;
     const consultOfferedThisTurn = notes => notes.some(n => n.includes(CONSULT_MENU_NAME));
 
     // 返答が質問で終わっているか（「？」のほか「〜でしょうか。」「〜構いません。」のような問いかけも含む）
@@ -668,7 +669,8 @@
       }
 
       // お子さんの呼び方は一度だけたずねる
-      if (modelReplies.some(t => /お子さん[^。]{0,10}(なんと|何と|どう)お呼び/.test(t))) {
+      const askedChildName = modelReplies.slice(1).some(t => /(お呼びすれば|お呼びしたら|(なんと|何と|どう)お呼び|(お子さん|息子さん|娘さん)の(お名前|呼び方))/.test(t));
+      if (askedChildName) {
         notes.push("お子さんの呼び方は、すでに一度おたずねしています。もう一度たずねることはしないでください。教えてもらった呼び方があればそれを使い、なければ「お子さん」と呼んでください（相談者が息子か娘かを話していれば「息子さん」「娘さん」でもかまいません）。");
       }
 
@@ -712,6 +714,18 @@
           "「今日はたくさんお話ししてくださってありがとうございます。少し休んで、またいつでも来てくださいね」という趣旨で、やさしく区切りを提案してください。" +
           "相談者がまだ話したい様子なら、その後も続けてかまいません。"
         );
+      }
+
+      // お子さんの話が出てきたら、まだたずねていなければ、今回たずねる（AI任せだとたずねないことがあるため）
+      if (!askedChildName) {
+        const userTexts = chatHistory.filter(h => h.role === "user").slice(2).map(h => h.parts[0].text).join("\n");
+        const childMentioned = CHILD_TOPIC_PATTERN.test(userTexts);
+        const childNameGiven = /(くん|君|ちゃん)/.test(userTexts);
+        const otherTopicThisTurn = notes.some(n => n.includes(CONSULT_MENU_NAME) || n.includes("区切り"));
+        if (childMentioned && !childNameGiven && questionStreak < 2 && !askedAboutMother && !talksAboutSelf &&
+            !safetyConcern && !otherTopicThisTurn) {
+          notes.push("今回は、短い受け止めの一言のあとに、お子さんの呼び方をたずねてください（例：「お子さんのことは、なんとお呼びすればいいですか？ニックネームでも、『お子さん』のままでも大丈夫ですよ。」）。助言はせず、ほかの質問もしないでください。息子か娘かは、相談者が言っていなければ決めつけないでください。");
+        }
       }
 
       // 個別相談を案内する回は、「短く」の指示を外す（案内の文が入りきらないため）
